@@ -1,0 +1,6 @@
+**/*_files/
+**/*_cache/
+**/*.html
+*.html
+*.Rproj
+.Rproj.user

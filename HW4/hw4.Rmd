@@ -1,0 +1,339 @@
+---
+title: |
+  | MATH 4502 - Statistics for Process Control
+  | Homework 4 - Inferences About Process Quality
+author: "Pranav Singh"
+date: "02/08/2017"
+output: pdf_document
+ouptut:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+---
+```{r setup, echo = F}
+library(knitr)
+opts_chunk$set(cache = T)
+opts_chunk$set(tidy = T, tidy.opts=list(width.cutoff = 80))
+```
+
+# 4.1
+\[ H_0 : \mu = 100 \\ H_1 : \mu \neq 100 \]
+\[ P = 2(1 - \Phi(|Z_0|)) \quad \text{two-tailed test} \]
+```{r}
+2*pnorm(abs(2.75), lower.tail = F) # (a)
+2*pnorm(abs(1.86), lower.tail = F) # (b)
+2*pnorm(abs(-2.05), lower.tail = F) # (c)
+2*pnorm(abs(-1.86), lower.tail = F) # (d)
+```
+
+# 4.2
+\[ H_0 : \mu = 100 \\ H_1 : \mu > 100 \]
+\[ P = 1 - \Phi(Z_0) \quad \text{upper-tailed test} \]
+```{r}
+pnorm(2.50, lower.tail = F) # (a)
+pnorm(1.95, lower.tail = F) # (b)
+pnorm(2.05, lower.tail = F) # (c)
+pnorm(2.36, lower.tail = F) # (d)
+```
+
+# 4.3
+\[ H_0 : \mu = 100 \\ H_1 : \mu < 100 \]
+\[ P = \Phi(Z_0) \quad \text{lower-tailed test} \]
+```{r}
+pnorm(-2.35) # (a)
+pnorm(-1.99) # (b)
+pnorm(-2.18) # (c)
+pnorm(-1.85) # (d)
+```
+
+# 4.4
+\[ H_0 : \mu = 100 \\ H_1 : \mu \neq 100 \]
+\[ P = 2(1 - \Phi(|t_0|)) \quad \text{two-tailed test} \]
+```{r}
+2*pt(abs(2.75), 19, lower.tail = F) # (a)
+2*pt(abs(1.86), 19, lower.tail = F) # (b)
+2*pt(abs(-2.05), 19, lower.tail = F) # (c)
+2*pt(abs(-1.86), 19, lower.tail = F) # (d)
+```
+
+# 4.7
+\[ H_0 : \mu = 8.25 \\ H_1 : \mu \neq 8.25 \]
+\[ t_0 = \frac{\bar{x} - \mu}{s / \sqrt{n}} \]
+\[ t_{0.025,24} = 2.06899 \]
+\[ P = 2(1 - \Phi(|t_0|)) \quad \text{two-tailed test} \]
+
+```{r}
+# (a)
+n <- 15
+mu <- 8.25
+sigma <- .002
+xbar <- 8.2535
+alpha <- .05
+zcrit <- qnorm(alpha / 2, lower.tail = F); zcrit
+z0 <- (xbar - mu) / (sigma / sqrt(n)); z0
+```
+
+Since $Z_0 > Z_{crit}$, we reject $H_0$ and conclude that the mean bearing diameter is not 8.25 cm.
+
+```{r}
+# (b)
+pvalue <- 2*pnorm(abs(z0), lower.tail = F); pvalue
+```
+```{r}
+# (c)
+confint <- xbar + c(-1,1) * zcrit * sigma / sqrt(n)
+confint
+```
+
+# 4.12
+```{r}
+# (a)
+sampleData <- c(12.03, 12.01, 12.04, 12.02, 12.05, 11.98, 11.96, 12.02, 12.05, 11.99)
+n <- length(sampleData)
+mu <- 12
+alpha <- .01
+xbar <- mean(sampleData)
+s <- sd(sampleData)
+tcrit <- qt(alpha / 2, n - 1, lower.tail = F); tcrit
+t0 <- (xbar - mu) / (s / sqrt(n)); t0
+```
+
+Our test statistic is less than the critical value, so we fail to reject $H_0: \mu = 12$. That is, we conclude we don't have enough evidence to support the claim that the mean fill volume exceeds 12 oz.
+
+```{r}
+# (b)
+alpha <- .05
+tcrit <- qt(alpha / 2, n - 1, lower.tail = F); tcrit
+confint <- xbar + c(-1,1) * tcrit * s / sqrt(n)
+confint
+```
+```{r}
+# (c)
+shapiro.test(sampleData)
+qqnorm(sampleData)
+qqline(sampleData)
+```
+
+The assumption of normality seems reasonable for the given data.
+
+# 4.15
+```{r}
+# (a)
+sampleData <- c(10.35, 9.30, 10.00, 9.96, 11.65, 12.00, 11.25, 9.58, 11.54, 9.95, 10.28, 8.37, 10.44, 9.25, 9.38, 10.85)
+n <- length(sampleData)
+mu <- 12
+alpha <- .05
+xbar <- mean(sampleData)
+s <- sd(sampleData)
+tcrit <- qt(alpha / 2, n - 1, lower.tail = F); tcrit
+t0 <- (xbar - mu) / (s / sqrt(n)); t0
+```
+
+Our test statistic is greater in magnitude than the critical value, so we reject $H_0: \mu = 12$. That is, we conclude that the mean output voltage is significantly different than 12 V at the 5% significance level.
+
+```{r}
+# (b)
+confint <- xbar + c(-1,1) * tcrit * s / sqrt(n)
+confint
+```
+```{r}
+# (c)
+sigma.squared <- 1
+chisq.crit <- qchisq(alpha / 2, n - 1, lower.tail = F); chisq.crit
+chisq.0 <- (n-1) * s^2 / sigma.squared; chisq.0
+```
+
+We fail to reject $H_0: \sigma^2 = 1$, and conclude that our evidence is insufficient towards saying the variance differs from 1 at the 5% significance level.
+
+```{r}
+# (d)
+confint <- s^2 * (n - 1) / c(chisq.crit, qchisq(alpha / 2, n-1))
+confint # 95% two-sided CI for the variance
+sqrt(confint) # 95% two-sided CI for sigma
+```
+
+```{r}
+# (e)
+confint <- s^2 * (n - 1) / qchisq(alpha, n-1)
+confint # 95% upper CI for the variance
+sqrt(confint) # 95% upper CI for sigma
+```
+
+```{r}
+# (f)
+shapiro.test(sampleData)
+qqnorm(sampleData)
+qqline(sampleData)
+```
+
+The assumption of normality seems reasonable for the given data.
+
+# 4.16
+```{r}
+n1 <- 25
+n2 <- 20
+x1bar <- 2.04
+x2bar <- 2.07
+sigma1 <- 0.010
+sigma2 <- 0.015
+```
+```{r}
+# (a) Test H0: y = u1 - u2 = 0  vs. H1: u1 - u2 != 0
+alpha <- .05
+y.expected <- 0
+y.test <- x1bar - x2bar
+s <- sqrt(sigma1^2/n1 + sigma2^2/n2)
+zcrit <- qnorm(alpha / 2, lower.tail = F); zcrit
+z0 <- (y.test - y.expected) / s; z0
+```
+
+Since $|Z_0| > Z_{crit}$, we reject $H_0$, and conclude that there is a nonzero difference in average net contents from the two machines at the 5% significance level.
+
+```{r}
+# (b)
+pvalue <- 2*pnorm(abs(z0), lower.tail = F); pvalue
+# (c)
+confint <- y.test + c(-1,1) * zcrit * s; confint
+```
+
+# 4.17
+```{r}
+data1 <- c(1.45, 1.37, 1.21, 1.54, 1.48, 1.29, 1.34)
+data2 <- c(1.54, 1.41, 1.56, 1.37, 1.20, 1.31, 1.27, 1.35)
+n1 <- length(data1)
+n2 <- length(data2)
+x1bar <- mean(data1)
+x2bar <- mean(data2)
+s1 <- sd(data1)
+s2 <- sd(data2)
+
+# (a)
+alpha <- .05
+y.expected <- 0
+y.test <- x1bar - x2bar
+df.test <- n1 + n2 - 2
+sp <- sqrt(((n1 - 1)*s1^2 + (n2 - 1)*s2^2) / df.test)
+tcrit <- qt(alpha / 2, df.test, lower.tail = F); tcrit;
+t0 <- (y.test - y.expected) / (sp * sqrt(1/n1 + 1/n2)); t0
+```
+
+Since $|t_0| < t_{crit}$, we fail to reject $H_0: \mu_1 = \mu_2$, and conclude that there is not sufficient evidence of a difference measurements between the two technicians. Practically, this means that the two technicians can substitute one another without affecting the expected average quality of their measurements. If we'd rejected the null hypothesis, then this would not be the case; we'd conclude instead that at least one (or both) measurements is wrong (since a single metal part should yield consistently equivalent measurements).
+
+```{r}
+# (c)
+confint <- y.test + c(-1, 1) * tcrit * sp * sqrt(1/n1 + 1/n2); confint
+
+# (d) H0: sigma1 = sigma2   vs.   H1: not H0
+fcrit.lower <- qf(alpha / 2, n1 - 1, n2 - 1); fcrit.lower
+fcrit.upper <- qf(alpha / 2, n1 - 1, n2 - 1, lower.tail = F); fcrit.upper
+f0 <- s1^2 / s2^2; f0
+```
+
+We don't reject $H_0: \sigma_1^2 = \sigma_2^2$ since $F_{crit, lower} <= F_0 <= F_{crit, upper}$. The practical implications of rejecting the null hypothesis is that the variability of the technicians' measurements differs, and so our hypothesis testing under the assumption of pooled data in parts (a)-(c) would've been flawed.
+
+```{r}
+# (e)
+confint <- s1^2 / s2^2 * c(qf(alpha / 2, n2 - 1, n1 - 1), qf(alpha / 2, n2 - 1, n1 - 1, lower.tail = F)); confint
+
+# (f)
+confint <- s2^2 * (n2 - 1) / c(qchisq(alpha / 2, n2 - 1, lower.tail = F), qchisq(alpha / 2, n2 - 1)); confint
+
+# (g)
+par(mfrow=c(1,2))
+shapiro.test(data1)
+shapiro.test(data2)
+qqnorm(data1)
+qqline(data2)
+qqnorm(data2)
+qqline(data2)
+```
+
+The assumption of normality seems reasonable for the given data.
+
+# 4.21
+```{r}
+n <- 500
+x <- 65
+pbar <- x / n
+
+# (a) H0: p = .08   vs.   H1: not H0
+p <- .08
+alpha <- .05
+# we use the normal approximation to the binomial
+zcrit <- qnorm(alpha / 2, lower.tail = F); zcrit
+z0 <- (ifelse(x > n*p, x - .5, x + .5) - n*p) / sqrt(n*p*(1-p)); z0
+```
+
+Since $|Z_0| > Z_{crit}$, we reject $H0$ and conclude at the 5% significance level that the true fraction defective in the process differs from 0.08.
+
+```{r}
+# (b)
+pvalue <- 2*pnorm(z0, lower.tail = F); pvalue
+
+# (c)
+confint <- pbar + qnorm(alpha, lower.tail = F)*sqrt(pbar*(1-pbar)/n); confint # 95% upper CI
+```
+
+# 4.22
+```{r}
+# (a)
+n1 <- 200; x1 <- 10; p1bar <- x1 / n1; p1bar
+n2 <- 300; x2 <- 20; p2bar <- x2 / n2; p2bar
+
+# (b) H0: p1 = p2     vs.   H1: not H0
+alpha <- .05
+pbar <- (x1 + x2) / (n1 + n2)
+zcrit <- qnorm(alpha / 2, lower.tail = F); zcrit
+z0 <- (p1bar - p2bar) / sqrt(pbar * (1-pbar) * (1/n1 + 1/n2)); z0
+```
+
+Since $|Z_0| < Z_{crit}$, we don't reject $H_0$. That is, there is not sufficient evidence to suggest the nonconforming fraction differs between the two processes at the 5% significance level.
+
+```{r}
+# (c)
+confint <- (p1bar - p2bar) + c(-1,1)*qnorm(alpha, lower.tail = F)*sqrt( p1bar*(1-p1bar)/n1 + p2bar*(1-p2bar)/n2 ); confint
+```
+
+# 4.26
+\[ H_0: \mu = 150  \\ H_1: \mu > 150 \]
+The alternative hypothesis $H_1: \mu > 150$ is preferable over $H_1: \mu < 150$ because we'd like to show the weld strength exceeds 150 psi. In hypothesis testing, if our p-value is small enough, we can reject the null hypothesis in favor of the alternative hypothesis. Thus, we should make our alternative what we're seeking to show; i.e. $H_1: \mu > 150$.
+
+```{r}
+# (b)
+n <- 20
+mu <- 150
+xbar <- 153.7
+s <- 11.5
+alpha <- .05
+tcrit <- qt(alpha / 2, n - 1, lower.tail = F); tcrit
+t0 <- (xbar - mu) / (s / sqrt(n)); t0
+```
+
+Since $t_0 < t_{crit}$, we fail to reject the null $H_0$. We conclude that our evidence is insufficient for supporting the claim that the mean weld strength exceeds 150 psi.
+
+# 4.27
+```{r}
+data <- c(753, 751, 752, 753, 753, 753, 752, 753, 754, 754, 752, 751, 752, 750, 753, 755, 753, 756, 751, 750)
+n <- length(data)
+xbar <- mean(data)
+s <- sd(data)
+
+# (a) H0: sigma^2 = 1       vs.     H1: sigma^2 < 1
+alpha <- .05
+sigma.0 <- 1
+chisq.crit <- qchisq(alpha, n - 1); chisq.crit
+chisq.0 <- (n - 1)*s^2 / sigma.0^2; chisq.0
+```
+
+Since we fail the rejection test $\chi^2_0 < \chi^2_{crit}$, we fail to reject the null $H_0$. That is, the data does not support the claim that the standard deviation of fill volume is less than 1 ml at the 5% significance level.
+
+```{r}
+# (b)
+confint <- sqrt((n-1)*s^2 / c(qchisq(alpha/2, n-1, lower.tail = F), qchisq(alpha/2, n-1))); confint
+
+# (c)
+qqnorm(data)
+qqline(data)
+```
+
+The data don't fit well on the straight line, so the normality assumption is suspect.
