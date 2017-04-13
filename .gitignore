@@ -1,6 +1,7 @@
-**/*_files/
-**/*_cache/
-**/*.html
-*.html
+Homework/**/*_files/
+Homework/**/*_cache/
+/Homework/**/*.html
+!/Homework/*.html
 *.Rproj
 .Rproj.user
+
