@@ -1,0 +1,360 @@
+---
+title: |
+  | MATH 4502 - Statistics for Process Control
+  | Homework 6 - Control Charts for Variables
+author: "Pranav Singh"
+date: "03/08/2017"
+output: pdf_document
+ouptut:
+  pdf_document:
+  toc: yes
+toc_depth: 2
+---
+
+```{r setup, echo = F, message=F}
+library(knitr)
+opts_chunk$set(cache = T)
+opts_chunk$set(tidy = T, tidy.opts=list(width.cutoff = 80))
+require(qicharts)
+require(qcc)
+```
+
+```{r}
+require(readxl)
+df06 <- read_excel("./ch06.xlsx")
+```
+
+# 6.2
+(a) Find the control limits that should be used on the
+x and R control charts.
+```{r}
+# From Appendix VI for n = 5
+A2 <- 0.577
+d2 <- 2.326
+D3 <- 0
+D4 <- 2.114
+
+m <- 25
+xbarbar <- 1253.75 / m
+rbar <- 14.08 / m
+```
+```{r}
+# xbar control chart
+x.CL <- xbarbar
+x.LCL <- x.CL + A2*rbar
+x.UCL <- x.CL - A2*rbar
+
+# R control chart
+R.CL <- rbar
+R.LCL <- D3*rbar
+R.UCL <- D4*rbar
+```
+The control limits for the xbar chart are `r c(x.LCL, x.UCL)` and for the R chart are `r c(R.LCL, R.UCL)`.
+
+(b) Assume that the 25 preliminary samples plot in
+control on both charts. Estimate the process
+mean and standard deviation.
+```{r}
+mu <- xbarbar
+sigma <- rbar / d2
+```
+Estimations for process mean is `r mu` and for standard deviation is `r sigma`.
+
+# 6.8
+A high-voltage power supply should have a nominal
+output voltage of 350 V. A sample of four units is
+selected each day and tested for process-control pur-
+poses. The data shown in Table 6E.3 give the differ-
+ence between the observed reading on each unit and
+the nominal voltage times ten.
+```{r}
+text <- "Sample x1 x2 x3 x4
+1 6 9 10 15
+2 10 4 6 11
+3 7 8 10 5
+4 8 9 6 13
+5 9 10 7 13
+6 12 11 10 10
+7 16 10 8 9
+8 7 5 10 4
+9 9 7 8 12
+10 15 16 10 13
+11 8 12 14 16
+12 6 13 9 11
+13 16 9 13 15
+14 7 13 10 12
+15 11 7 10 16
+16 15 10 11 14
+17 9 8 12 10
+18 15 7 10 11
+19 8 6 9 12
+20 13 14 11 15"
+con <- textConnection(text)
+df <- read.csv(con, sep = ' ')
+df$Sample <- NULL
+df$x1 <- df$x1/10 + 350
+df$x2 <- df$x2/10 + 350
+df$x3 <- df$x3/10 + 350
+df$x4 <- df$x4/10 + 350
+```
+
+(a) Set up x and R charts on this process. Is the
+process in statistical control?
+```{r}
+xchart <- qcc(df, type = 'xbar'); plot(xchart)
+Rchart <- qcc(df, type = 'R'); plot(Rchart)
+```
+The process is in statistical control.
+
+(b) If specifications are at 350 V ± 5 V, what can you
+say about process capability?
+```{r}
+process.capability(xchart, spec.limits = c(345, 355))
+```
+With a $C_p$ of 5.49, the process is very capable.
+
+(c) Is there evidence to support the claim that voltage is normally distributed?
+```{r}
+qqnorm(xchart$statistics); qqline(xchart$statistics, col = 'red')
+```
+The voltage data seems to be approximated well by a normal distributed.
+
+# 6.10
+The thickness of a printed circuit board is an important quality parameter. Data on board thickness (in inches) are given in Table 6E.5 for 25 samples of three boards each.
+```{r}
+text <- "Sample x1 x2 x3
+1 0.0629 0.0636 0.0640
+2 0.0630 0.0631 0.0622
+3 0.0628 0.0631 0.0633
+4 0.0634 0.0630 0.0631
+5 0.0619 0.0628 0.0630
+6 0.0613 0.0629 0.0634
+7 0.0630 0.0639 0.0625
+8 0.0628 0.0627 0.0622
+9 0.0623 0.0626 0.0633
+10 0.0631 0.0631 0.0633
+11 0.0635 0.0630 0.0638
+12 0.0623 0.0630 0.0630
+13 0.0635 0.0631 0.0630
+14 0.0645 0.0640 0.0631
+15 0.0619 0.0644 0.0632
+16 0.0631 0.0627 0.0630
+17 0.0616 0.0623 0.0631
+18 0.0630 0.0630 0.0626
+19 0.0636 0.0631 0.0629
+20 0.0640 0.0635 0.0629
+21 0.0628 0.0625 0.0616
+22 0.0615 0.0625 0.0619
+23 0.0630 0.0632 0.0630
+24 0.0635 0.0629 0.0635
+25 0.0623 0.0629 0.0630"
+con <- textConnection(text)
+df <- read.csv(con, sep = ' ')
+df$Sample <- NULL
+```
+
+(a) Set up x and R control charts. Is the process in statistical control?
+```{r}
+xchart <- qcc(df, type = 'xbar'); plot(xchart)
+Rchart <- qcc(df, type = 'R'); plot(Rchart)
+```
+The process is out of control since both the xbar and R control chart indicate at least one failing sample.
+
+(b) Estimate the process standard deviation.
+```{r}
+d2 <- 1.693
+sigma <- Rchart$center / d2; sigma
+```
+
+(c) What are the limits that you would expect to con-
+tain nearly all the process measurements?
+```{r}
+natural.limits <- xchart$center + c(-1, 1) * sigma
+```
+The natural tolerance limits are `r natural.limits`.
+
+(d) If the specifications are at 0.0630 in. ± 0.0015 in.,
+what is the value of the PCR $C_p$?
+```{r}
+process.capability(xchart, spec.limits = 0.0630 + c(-1,1)*.0015)
+```
+The PCR $C_p$ is 0.92.
+
+
+# 6.12
+The net weight (in oz) of a dry bleach product is to be monitored by x and R control charts using a sample size of n = 5. Data for 20 preliminary samples are shown in Table 6E.7.
+```{r}
+text <- "Sample x1 x2 x3 x4 x5
+1 15.8 16.3 16.2 16.1 16.6
+2 16.3 15.9 15.9 16.2 16.4
+3 16.1 16.2 16.5 16.4 16.3
+4 16.3 16.2 15.9 16.4 16.2
+5 16.1 16.1 16.4 16.5 16.0
+6 16.1 15.8 16.7 16.6 16.4
+7 16.1 16.3 16.5 16.1 16.5
+8 16.2 16.1 16.2 16.1 16.3
+9 16.3 16.2 16.4 16.3 16.5
+10 16.6 16.3 16.4 16.1 16.5
+11 16.2 16.4 15.9 16.3 16.4
+12 15.9 16.6 16.7 16.2 16.5
+13 16.4 16.1 16.6 16.4 16.1
+14 16.5 16.3 16.2 16.3 16.4
+15 16.4 16.1 16.3 16.2 16.2
+16 16.0 16.2 16.3 16.3 16.2
+17 16.4 16.2 16.4 16.3 16.2
+18 16.0 16.2 16.4 16.5 16.1
+19 16.4 16.0 16.3 16.4 16.4
+20 16.4 16.4 16.5 16.0 15.8"
+con <- textConnection(text)
+df <- read.csv(con, sep = ' ')
+df$Sample <- NULL
+```
+
+(a) Set up x and R control charts using these data. Does the process exhibit statistical control?
+```{r}
+xchart <- qcc(df, type = 'xbar'); plot(xchart)
+Rchart <- qcc(df, type = 'R'); plot(Rchart)
+```
+The process seems to be in statistical control, with no clear out-of-control signals or non-random patterns in the control chart.
+
+(b) Estimate the process mean and standard deviation.
+```{r}
+mu <- xchart$center; mu
+d2 <- 2.326
+sigma <- Rchart$center / d2; sigma
+```
+
+(c) Does fill weight seem to follow a normal distribution?
+```{r}
+qqnorm(xchart$statistics); qqline(xchart$statistics, col = 'red')
+```
+Yes, the fill weight seems to follow a normal distribution.
+
+(d) If the specifications are at 16.2 ± 0.5, what conclusions would you draw about process capability?
+```{r}
+process.capability(xchart, spec.limits = 16.2 + c(-1,1)*0.5)
+```
+Since $C_p < 1$, the process is not capable.
+
+(e) What fraction of containers produced by this process is likely to be below the lower specification limit of 15.7 oz?
+From the rightmost column at the botoom of the Process Capability Analysis above, we see that 0.27% of the output yielded by this process is likely to be below the lower specification limit.
+
+# 6.19
+Samples of n = 4 items are taken from a process at regular intervals. A normally distributed quality characteristic is measured and x and s values are calculated for each sample. After 50 subgroups have been analyzed, we have $\sum{\bar{x_i}} = 1000$ and $\sum{s_i} = 72$.
+
+(a) Compute the control limit for the x and s control charts.
+```{r}
+n <- 4
+m <- 50
+sum.xbar.i <- 1000
+sum.s.i <- 72
+
+xbarbar = sum.xbar.i / m; xbarbar
+sbar = sum.s.i / m; sbar
+
+# x chart limits
+A3 <- 1.628
+x.limits = xbarbar + c(-1,1)*A3*sbar;
+
+# s chart limits
+B3 = 0
+B4 = 2.266
+s.limits = c(B3*sbar, B4*sbar) 
+```
+The control limits for the x control chart are `r x.limits` and for the s control chart are `r s.limits`.
+
+(b) Assume that all points on both charts plot within the control limits. What are the natural tolerance limits of the process?
+```{r}
+c4 <- 0.9213
+sigma.hat <- sbar / c4
+natural.limits = xbarbar + c(-1,1)*3*sigma.hat
+```
+The natural tolerance limits of the process are `r natural.limits`.
+
+(c) If the specification limits are 19 ± 4.0, what are your conclusions regarding the ability of the process to produce items conforming to specifications?
+```{r}
+Cp = 2*4.0 / (6*sigma.hat); Cp
+```
+Since $C_p < 1$, the process is not reliably capable of producing items conforming to specifications.
+
+(d) Assuming that if an item exceeds the upper specification limit it can be reworked, and if it is below the lower specification limit it must be scrapped, what percentage scrap and rework is the process now producing?
+```{r}
+p.rework = 1 - pnorm((23 - xbarbar)/sigma.hat, lower.tail = F); p.rework
+p.scrap = pnorm((15 - xbarbar)/sigma.hat, lower.tail = F); p.scrap
+```
+The process is currently producing roughly `r 100*(p.rework + p.scrap)`% scrap and rework.
+
+(e) If the process were centered at m = 19.0, what would be the effect on percentage scrap and rework?
+You'd be shifting the limits to the right, and so the effect would be an increase in the rate of scrap and a decrease in the rate of rework.
+
+# 6.59
+Control charts for x and s have been maintained on a process and have exhibited statistical control. The sample size is n = 6. The control chart parameters are as follows: 
+```{r}
+x.UCL = 708.20; x.Center = 706.00; x.LCL = 703.80
+s.UCL = 3.420; s.Center = 1.738; s.LCL = 0.052
+```
+
+(a) Estimate the mean and standard deviation of the process.
+```{r}
+mu.hat = x.Center; mu
+
+c4 = 0.9515
+sbar = s.Center
+theta.hat = sbar / c4; theta.hat
+```
+
+(b) Estimate the natural tolerance limits for the process.
+```{r}
+natural.limits = mu.hat + c(-1,1)*3*sigma.hat
+```
+The natural tolerance limits for the process are `r natural.limits`.
+
+(c) Assume that the process output is well modeled by a normal distribution. If specifications are 703 and 709, estimate the fraction nonconforming.
+```{r}
+p.hat = pnorm((703 - mu.hat)/sigma.hat, lower.tail = F) + (1 - pnorm((709 - mu.hat)/sigma.hat, lower.tail = F))
+```
+The estimated fraction nonforming is `r p.hat`.
+
+(d) Suppose the process mean shifts to 702.00 while the standard deviation remains constant. What is the probability of an out-of-control signal occurring on the first sample following the shift?
+```{r}
+p.first = pnorm((x.LCL - 702)/(sigma.hat / sqrt(6)), lower.tail = F) + (1 - pnorm((x.UCL - 702)/(sigma.hat / sqrt(6)), lower.tail = F))
+```
+The probability of an out-of-control signal occurring on the first sample following the shift is `r p.first`.
+
+(e) For the shift in part (d), what is the probability of detecting the shift by at least the third subsequent sample?
+```{r}
+p.notDetect = 1 - p.first
+p.notByThird = p.notDetect^3
+p.byThird = 1 - p.notByThird
+```
+The probability of detecting the shift by at least the third subsequent sample is `r p.byThird`.
+
+# 6.62
+Fifteen successive heats of a steel alloy are tested for hardness. The resulting data are shown in Table 6E.21. Set up a control chart for the moving range and a control chart for individual hardness measurements. Is it reasonable to assume that hardness is normally distributed?
+```{r}
+text <- "Heat1 Hardness1 Heat2 Hardness2
+1 52 9 58
+2 51 10 51
+3 54 11 54
+4 55 12 59
+5 50 13 53
+6 52 14 54
+7 50 15 55
+8 51 NA NA"
+con <- textConnection(text)
+df <- read.csv(con, sep = ' ')
+df <- na.omit(data.frame(Heat = c(df$Heat1, df$Heat2), Hardness = c(df$Hardness1, df$Hardness2)))
+```
+
+```{r}
+m <- nrow(df)
+xchart <- qcc(df$Hardness, type = 'xbar.one'); plot(xchart)
+mRchart <- qcc(cbind(df$Hardness[1:m-1], df$Hardness[2:m]), type = 'R'); plot(mRchart)
+```
+
+```{r}
+qqnorm(df$Hardness)
+qqline(df$Hardness)
+shapiro.test(df$Hardness)
+```
+The tails deviate from the straight line significantly. The Shapiro-Wilk Normality Test yields a p-value of 0.1556. Typically, a p-value < 0.1 is adequate for the normality assumption. Thus, the data doesn't support the normally distributed assumption well.
