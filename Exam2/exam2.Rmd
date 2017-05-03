@@ -1,0 +1,134 @@
+---
+title: |
+  | MATH 4502 - Statistics for Process Control
+  | Exam 2
+author: "Pranav Singh"
+date: "03/28/2017"
+output: pdf_document
+ouptut:
+  pdf_document:
+  toc: yes
+toc_depth: 2
+---
+
+
+```{r setup, echo = F, message=F}
+library(knitr)
+opts_chunk$set(cache = T)
+opts_chunk$set(tidy.opts=list(width.cutoff = 80))
+
+require(qicharts)
+require(ggplot2)
+```
+
+# Problem 1
+*Define operating characteristic function of a control chart. What is its importance in process control?*
+
+Used for inspecting samples, the OC curve plots the probabiltiy of accepting a batch of items against the quality level of the batch. The OC curve is Opearting-characteristic curves of control charts are used to detect shifts in process quality. Specifically, the y-axis of the plot is the $\beta$-risk representing the probability of not detecting a shift of $k\sigma$ in the mean on the first sample following the shift. 
+
+# Problem 2
+*Please explain: What is a c-chart. When and where it is used.*
+
+The $c$ chart is the control chart for nonconformities. A noncomformity, or a defect, is any point that fails a given specification test. A noncomforming item contains one or more defects. However, it's also possible for an item to contain nonconformities and still not be classified as noncomforming, say for example if the defects are deemed to be minor flaws that don't affect the unit's functional performance. The $c$ chart models the number of nonconformities in a unit. It assumes that the occurrence of nonconformities in samples of constant size is well modeled by the Poisson distribution. Once the appropriate parameter $\lambda$ for the Poisson distribution is chosen, the $c$-chart with three-sigma limits would be centered about $\lambda$ and have upper and lower control limits of $\lambda \pm 3\sqrt{\lambda}$. Such a control chart would be used to maintain control over the process's nonconforming rate.
+
+# Problem 3
+*Control chart of $\bar{x}$ and R in use with the following measures.*
+\[ 
+\begin{aligned}
+\bar{x}_{chart}: &\; CL = 420 \;,\; LCL = 390 \;,\; UCL = 450 \\
+R_{chart}: &\; CL = 67.05 \;,\; LCL = 54.15 \;,\; UCL = 61.16 \;,\; d_2 = 2.326
+\end{aligned}
+\]
+*The sample size is 5. Both charts exhibit control. The quality characteristic is normally distributed.*
+
+*(a) What is the $\alpha$ associated with the $\bar{x}$ chart?*
+
+The type I error probability $\alpha$ associated with the usual three-sigma control limits of a $\bar{x}$ chart is $\alpha = 0.0027$.
+
+*(b) Specification of the quality characteristic is $415 \pm 20$. What are your conclusions regarding the ability of the process to produce within specifications?*
+
+The process capability ratio $C_p = \frac{USL - LSL}{6\sigma}$, where we estimate $\sigma = \hat{R}/d_2$. The given values above yield $\sigma =  67.05 / 2.326 = 28.83$ and $C_p = (2\cdot20) / (6\cdot28.83) = 0.2315$. Thus, the process is capable of producing output within the specification limits approximately 23.15% of the time.
+
+# Problem 4
+*A manufacturer of computer monitors must control the tension on the mesh of fine vertical wires that lies behind the surface of the viewing screen. Too much tension will tear the mesh, and too little will allow wrinkles. Tension is measured by an electrical device with output readings in millivolts (mV). The manufacturing process has been stable with mean tension $\mu$ = 275 mV and process standard deviation $\sigma$ = 43 mV.
+The operator measures the tension on a sample of 4 monitors each hour. The following table gives the last 20 samples. The table also gives the mean $\bar{x}$ and the standard deviation $s$ for each sample.*
+
+```{r}
+mu <- 275
+sigma <- 43
+
+text <- "sample Measure1 Measure2 Measure3 Measure4 xbar sd
+1 234.5 272.3 234.5 272.3 253.4 21.8
+2 311.1 305.8 238.5 286.2 285.4 33
+3 247.1 205.3 252.6 316.1 255.3 45.7
+4 215.4 296.8 274.2 256.8 260.8 34.4
+5 327.9 247.2 283.3 232.6 272.7 42.5
+6 304.3 236.3 201.8 238.5 245.2 42.8
+7 268.9 276.2 275.6 240.2 265.2 17
+8 282.1 247.7 259.8 272.8 265.6 15
+9 260.8 259.9 247.9 345.3 278.5 44.9
+10 329.3 231.8 307.2 273.4 285.4 42.5
+11 266.4 249.7 231.5 265.2 253.2 16.3
+12 168.8 330.9 333.6 318.3 287.9 79.7
+13 349.9 334.2 292.3 301.5 319.5 27.1
+14 235.2 283.1 245.9 263.1 256.8 21
+15 257.3 218.4 296.2 275.2 261.8 33.0
+16 235.1 252.7 300.6 297.6 271.5 32.7
+17 286.3 293.8 236.2 275.3 272.9 25.6
+18 328.1 272.6 329.7 260.1 297.6 36.5
+19 316.4 287.4 373.0 286.0 315.7 40.7
+20 296.8 350.5 280.6 259.8 296.9 38.8"
+
+con <- textConnection(text)
+df <- read.csv(con, sep = ' ')
+```
+
+*(a) Please construct its control charts and analyze the result.*
+```{r}
+# Phase I Operation of the xbar chart
+qic(c(df$Measure1, df$Measure2, df$Measure3, df$Measure4), x = rep(df$sample, 4), chart = 'xbar')
+
+# Phase II operation of the xbar chart
+ggplot(df, aes(x = sample, y = xbar)) + 
+  geom_point() + 
+  geom_line() + 
+  geom_hline(yintercept = mu, color='blue') + 
+  geom_hline(yintercept = mu - 3*sigma, linetype='dashed') +
+  geom_hline(yintercept = mu + 3*sigma, linetype='dashed')
+```
+Since we were given values associated with a stable manufacturing process in the past, we should use the Phase II operation approach above.
+
+*(b) Suppose that the specification is 277 ± 110. Please evaluate the process capability*
+
+The process capability ratio $C_p = \frac{USL - LSL}{6\sigma}$, where we were given $\sigma = 43$. Thus, $C_p = (2\cdot110) / (6\cdot43) = 0.8527$. Thus, the process is capable of producing output within the specification limits approximately 85.27% of the time.
+
+# Problem 5
+*A production manager at a tire manufacturing plant has inspected the number of defective tires in twenty random samples with twenty observations each. Following are the number of defective tires found in each sample. Construct appropriate control chart to monitor this process.*
+
+```{r}
+df <- data.frame(
+  i = 1:20
+  , numDefects = c(3,2,1,2,1,3,3,2,1,2,3,2,2,1,1,2,4,3,1,1)
+  , n = rep(20, 20)
+)
+```
+
+*(a) What type control charts can you construct?*
+
+We can construct a $c$ or $u$ control chart for monitoring nonconformities. 
+
+*(b) Is the process in statistical control? Please determine the correct control limits for future monitoring process.*
+
+```{r}
+phat = sum(df$numDefects) / sum(df$n)
+sigma = sqrt(phat*(1-phat)/20)
+LCL = max(0, phat - 3*sigma)
+UCL = min(1, phat + 3*sigma)
+cchart <- qic(y=df$numDefects, x=df$i, chart = 'c')
+uchart <- qic(y=df$numDefects, n=df$n, x=df$i, chart = 'u')
+```
+The lower control limit for the average number of nonconformities per inspection unit is 0, and the upper control limit is `r uchart$ucl[1]`.
+
+*(c) What do you say about the control chart pattern?*
+
+There appears to be a mixture pattern in the control chart. The mixture pattern seems to be generated by two overlapping distributions generating the process output. From visual inspection, it appears the means of those two overlapping distributions are 0.05 and 0.15 average number of nonconformities per inspection unit.
