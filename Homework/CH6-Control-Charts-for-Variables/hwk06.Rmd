@@ -61,12 +61,7 @@ sigma <- rbar / d2
 Estimations for process mean is `r mu` and for standard deviation is `r sigma`.
 
 # 6.8
-A high-voltage power supply should have a nominal
-output voltage of 350 V. A sample of four units is
-selected each day and tested for process-control pur-
-poses. The data shown in Table 6E.3 give the differ-
-ence between the observed reading on each unit and
-the nominal voltage times ten.
+A high-voltage power supply should have a nominal output voltage of 350 V. A sample of four units is selected each day and tested for process-control purposes. The data shown in Table 6E.3 give the difference between the observed reading on each unit and the nominal voltage times ten.
 ```{r}
 text <- "Sample x1 x2 x3 x4
 1 6 9 10 15

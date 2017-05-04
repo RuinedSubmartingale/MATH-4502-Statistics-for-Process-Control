@@ -1,0 +1,104 @@
+---
+title: |
+  | MATH 4502 - Statistics for Process Control
+  | Final Exam - Spring 2017
+author: "Pranav Singh"
+date: "05/03/2017"
+output: pdf_document
+ouptut:
+  pdf_document:
+  toc: yes
+toc_depth: 2
+---
+  
+```{r setup, echo = F, message=F}
+library(knitr)
+opts_chunk$set(cache = T)
+opts_chunk$set(tidy.opts=list(width.cutoff = 80))
+require(rJava)
+require(xlsx)
+require(qicharts)
+require(qcc)
+```
+
+# Problem 1
+*What is the main purpose of a control chart?*
+
+# Problem 2
+*What is the difference between Phase I and Phase II control charts?*
+
+# Problem 3
+*(a) What is acceptance sampling?*
+
+*(b) What are the different types of sampling plans?*
+
+*(c) Find a single-sample plan for which $p_1 = 0.02, \alpha = 0.01, p_2 = 0.06, and \beta = 0.10$
+
+# Problem 4
+*In a recent publication, it was reported that the average highway gas mileage of tested models of a new car was 33.5 mpg and approximately normally distributed. A consumer group conducts its own tests on a simple random sample of 12 cars of this model and finds that the mean gas mileage for their vehicles is 31.6 mpg with a standard deviation of 3.4 mpg.*
+
+*(a) Perform a test to determine if these data support the contention that the true mean gas mileage of this model of car is different from the published value.*
+
+*(b) Perform a test to determine if these data support the contention that the true mean gas mileage of this model of car is less than the published value.*
+
+*(c) Explain why the answers to part ’a’ and ’b’ are different.*
+
+# Problem 5
+*The data in the table are diameters (in mm) of holes in a group of 12 wing leading edge ribs for a commercial transport airplane. Construct and interpret a box plot of those data.*
+```{r}
+text <- "120.5 120.4 120.7 120.9 120.2 121.1 120.3 120.1 120.9 121.3 120.5 120.8"
+diameters <- as.numeric(unlist(strsplit(text, ' ')))
+ggplot() + 
+  geom_boxplot(aes(x = 'diameter', y = diameters)) + 
+  scale_y_continuous(breaks = seq(120, 121.4, by = .1))
+```
+
+# Problem 6
+*The fill volume of soft-drink beverage bottles is an important quality char- acteristic. The volume is measured (approximately) by placing a gauge over the crown and comparing the height of the liquid in the neck of the bottle against a coded scale. On this scale, a reading of zero corresponds to the correct fill height. Fifteen samples of size n = 10 have been analyzed, and the fill heights are shown in the following Table.* 
+```{r}
+df <- read.xlsx('./finalexam_dataset.xlsx', sheetIndex = 1)
+df <- t(as.data.frame(split(df$Fill.Height, df$sample)))
+df
+```
+
+*(a) Set up xbar and s control charts on this process. Does the process exhibit statistical control? If necessary, construct revised control limits.*
+```{r}
+xchart <- qcc(df, type = 'xbar'); plot(xchart)
+schart <- qcc(df, type = 'S'); plot(schart)
+```
+
+*(b) Set up an R chart, and compare with the s chart in part (a).* 
+```{r}
+Rchart <- qcc(df, type = 'R'); plot(Rchart)
+```
+
+*(c) Set up an s^2 chart and compare with the s chart in part (a).*
+```{r}
+n <- ncol(df)
+sbar <- schart$center
+chisq.stat.lower <- qchisq(.975, n - 1, lower.tail = F)
+chisq.stat.upper <- qchisq(.025, n - 1, lower.tail = F)
+
+CL <- sbar^2; CL
+LCL <- CL/(n-1)*chisq.stat.lower; LCL
+UCL <- CL/(n-1)*chisq.stat.upper; UCL
+
+ggplot(mapping=aes(x=1:15, y=schart$statistics^2)) + 
+  geom_point() + geom_line() +
+  geom_hline(yintercept = CL) +
+  geom_hline(yintercept = LCL, linetype = 'dashed') +
+  geom_hline(yintercept = UCL, linetype = 'dashed') +
+  ylab('s^2') + xlab('Sample number') + ggtitle('s^2 control chart')
+```
+
+# Problem 7
+*Most corporation use external accounting and auditing firms for performing audits on their financial records. In medium to large business there may be a very large number of accounts to audit, so auditors often use a technique called audit sampling, in which a random sample of accounts are selected for auditing and the results used to draw conclusion about the organization’s accounting practices. The following table presents the results of an audit sampling process, in which 25 accounts were randomly selected and the number of posting errors found. Set up a control chart for nonconformities for this process. Is this process in statistical control?*
+```{r}
+df <- data.frame(
+  Account = 1:25
+  , PostingErrors = c(0, 2, 1, 4, 0, 1, 3, 2, 0, 1, 0, 0, 2, 0, 2, 1, 4, 6, 1, 1, 3, 4, 1, 0, 1)
+)
+cchart <- qcc(df$PostingErrors, type='c'); plot(cchart)
+uchart <- qcc(df$PostingErrors, type='u', sizes = rep(25, nrow(df))); plot(uchart)
+```
+
